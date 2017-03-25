@@ -1,0 +1,5 @@
+/home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/obj/x86/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/bin/Debug/Solution.exe.mdb
+/home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/bin/Debug/Solution.exe
+/home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/obj/x86/Debug/Solution.exe
+/home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/obj/x86/Debug/Solution.exe.mdb
