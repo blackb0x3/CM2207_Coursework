@@ -118,6 +118,16 @@ namespace Solution
 			return toReturn;
 		}
 
+		public CFG ConvertToChomsky()
+		{
+			CFG chomskyCFG = this;
+			// 1) Add a new start variable
+			chomskyCFG.AddRule("S0", this.startState);
+			chomskyCFG.startState = "S0";
+
+			return chomskyCFG;
+		}
+
 		public override String ToString()
 		{
 			String toReturn = "V: {";
