@@ -1,0 +1,11 @@
+A,B,C,D,E
+v w x y z - # %
+A
+A:A x y z B
+A:C
+B:v w #
+C:x # y
+C:w y D - %
+D:z -
+E:0xE2
+E:z y x w v

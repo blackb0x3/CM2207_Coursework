@@ -1,5 +1,4 @@
 ﻿using System;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +13,40 @@ namespace Solution
 		private List<String> terminalStates;
 		private List<String> nonTerminalStates;
 		private String startState;
-		private Dictionary<String, List<String>> rules = new Dictionary<String, List<String>>();
+		private Dictionary<String, List<String>> rules;
 
 		public CFG (String terminals, String nonTerminals, String start, String[] rules)
 		{
+			this.terminalStates = new List<String> ();
+			this.nonTerminalStates = new List<String> ();
+			this.startState = start;
+			this.rules = new Dictionary<String, List<String>>();
+
+			foreach (String symbol in nonTerminals.Split(",".ToCharArray()))
+			{
+				this.AddNonTerminal(symbol);
+			}
+
+			foreach (String symbol in terminals.Split(" ".ToCharArray()))
+			{
+				this.AddTerminal (symbol);
+			}
+
+			foreach (String rule in rules)
+			{
+				String theVariable = rule.Split (":".ToCharArray())[0];
+				String theTerminal = rule.Split (":".ToCharArray())[1];
+
+				if (UTF8Encoding.Equals (theTerminal, "0xE2")) {
+					this.AddRule (theVariable, "e");
+				}
+
+				else
+				{
+					this.AddRule (theVariable, theTerminal);
+				}
+
+			}
 		}
 
 		private void AddRule(String variable, String terminal)
@@ -30,9 +59,31 @@ namespace Solution
 			this.rules[variable].Add(terminal);
 		}
 
+		private void AddTerminal(String terminal)
+		{
+			this.terminalStates.Add (terminal);
+		}
+
+		private void AddNonTerminal(String nonTerminal)
+		{
+			this.nonTerminalStates.Add (nonTerminal);
+		}
+
 		public List<String> GetRulesForVariable(String variable)
 		{
 			return this.rules [variable];
+		}
+
+		public String PrintRulesForVariable(String variable)
+		{
+			String toReturn = "";
+
+			foreach (String rule in GetRulesForVariable(variable))
+			{
+				toReturn += variable + " -> " + rule + "\n";
+			}
+
+			return toReturn;
 		}
 
 		public List<String> GetTerminalStates()
@@ -55,14 +106,31 @@ namespace Solution
 			return this.rules;
 		}
 
-		public String ToString()
+		public String PrintAllRules()
 		{
 			String toReturn = "";
 
-			GetNonTerminalStates().ForEach(x => toReturn += x);
-			GetTerminalStates().ForEach(x => toReturn += x);
-			toReturn += GetStartState ();
-			//this.rules.Values.
+			foreach (String key in GetAllRules().Keys)
+			{
+				toReturn += PrintRulesForVariable(key);
+			}
+
+			return toReturn;
+		}
+
+		public override String ToString()
+		{
+			String toReturn = "V: {";
+
+			GetNonTerminalStates ().ForEach (x => toReturn += x + ",");
+			toReturn = toReturn.Remove (toReturn.Length - 1, 1);
+			toReturn += "}\n\u03A3: {"; // \u03A3 is the unicode value for the Σ symbol - to represent the language of the CFG
+			GetTerminalStates ().ForEach (x => toReturn += x + ",");
+			toReturn = toReturn.Remove (toReturn.Length - 1, 1);
+			toReturn += "}\nS: " + GetStartState () + "\n";
+			toReturn += "Rules:\n" + PrintAllRules ();
+
+			return toReturn;
 		}
 	}
 }
