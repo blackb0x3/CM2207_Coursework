@@ -14,6 +14,19 @@ namespace Solution
 		{
 			CFG theCFG = GenerateCFGFromFile (args [0]);
 			Console.WriteLine (theCFG.ToString());
+			Console.WriteLine ();
+			CFG theChomsky = theCFG.ConvertToChomsky ();
+			Console.WriteLine (theChomsky.ToString());
+
+			/*String text1 = "helloworld!";
+			String text2 = "world";
+
+			char[] exceptions = text1.Except(text2).ToArray();
+
+			foreach (char ex in exceptions)
+			{
+				Console.WriteLine (ex);
+			}*/
 		}
 
 		public static CFG GenerateCFGFromFile(String fileName)

@@ -37,8 +37,8 @@ namespace Solution
 				String theVariable = rule.Split (":".ToCharArray())[0];
 				String theTerminal = rule.Split (":".ToCharArray())[1];
 
-				if (UTF8Encoding.Equals (theTerminal, "0xE2")) {
-					this.AddRule (theVariable, "e");
+				if (UTF8Encoding.Equals (theTerminal, "0xE2") && !GetTerminalStates().Contains(theTerminal)) {
+					this.AddRule (theVariable, "ε");
 				}
 
 				else
@@ -127,8 +127,7 @@ namespace Solution
 			chomskyCFG.startState = "S0";
 
 			// 2) Remove ε rules, i.e. rules of the form "A -> ε".
-
-
+			RemoveEmptyStringRules();
 
 			// 3) Remove unit rules, i.e. rules of the form A → B, where B is a variable.
 
@@ -138,6 +137,50 @@ namespace Solution
 
 
 			return chomskyCFG;
+		}
+
+		private void RemoveEmptyStringRules()
+		{
+			bool emptyStringExists = false;
+
+			do
+			{
+				foreach (String variable in GetNonTerminalStates())
+				{
+					foreach (String terminal in GetRulesForVariable(variable))
+					{
+						if (terminal == "ε" && variable != GetStartState ())
+						{
+							emptyStringExists = true;
+							this.rules [variable].Remove ("ε");
+
+							foreach (String terminalVariable in GetNonTerminalStates()) // Go back through the variables
+							{
+								foreach (String variableThatIsTerminal in GetRulesForVariable(terminalVariable)) // Go back through the rules
+								{
+									if (variableThatIsTerminal.Contains (variable)) // Find any new occurences of the variable on the right hand side
+									{
+										if (variableThatIsTerminal == variable)
+										{
+											this.AddRule (terminalVariable, terminal); // Add empty
+										}
+
+										else
+										{
+											//this.AddRule(terminalVariable, variableThatIsTerminal.Except(variable));
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			while (emptyStringExists == true);
+		}
+
+		private void RemoveUnitRules() // i.e. rules of the form A → B, where B is a variable.
+		{
 		}
 
 		public override String ToString()

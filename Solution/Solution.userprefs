@@ -2,8 +2,8 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Solution/CFG.cs">
     <Files>
-      <File FileName="Solution/Program.cs" Line="29" Column="4" />
-      <File FileName="Solution/CFG.cs" Line="130" Column="4" />
+      <File FileName="Solution/Program.cs" Line="17" Column="48" />
+      <File FileName="Solution/CFG.cs" Line="16" Column="18" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
