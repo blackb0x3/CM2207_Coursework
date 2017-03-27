@@ -121,9 +121,21 @@ namespace Solution
 		public CFG ConvertToChomsky()
 		{
 			CFG chomskyCFG = this;
-			// 1) Add a new start variable
+
+			// 1) Add a new start variable.
 			chomskyCFG.AddRule("S0", this.startState);
 			chomskyCFG.startState = "S0";
+
+			// 2) Remove ε rules, i.e. rules of the form "A -> ε".
+
+
+
+			// 3) Remove unit rules, i.e. rules of the form A → B, where B is a variable.
+
+
+
+			// 4) Convert all remaining rules into the proper form.
+
 
 			return chomskyCFG;
 		}
