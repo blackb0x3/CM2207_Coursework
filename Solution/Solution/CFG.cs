@@ -48,7 +48,6 @@ namespace Solution
 				{
 					this.AddRule (theVariable, theTerminal);
 				}
-
 			}
 		}
 
@@ -144,9 +143,8 @@ namespace Solution
 			// 3) Remove unit rules, i.e. rules of the form A → B, where B is a variable.
 			chomskyCFG.RemoveUnitRules();
 
-
 			// 4) Convert all remaining rules into the proper form.
-
+			chomskyCFG.ConvertRemainingRules();
 
 			return chomskyCFG;
 		}
@@ -213,6 +211,24 @@ namespace Solution
 			}
 
 			this.rules = CreateCopyOfRules(newRules);*/
+		}
+
+		private void ConvertRemainingRules()
+		{
+			foreach (String variable in GetNonTerminalStates())
+			{
+				foreach (String terminal in GetRulesForVariable(variable))
+				{
+					String[] terminals = terminal.Split (" ".ToCharArray());
+
+					// > 3 because whitespaces are used to separate terminal outputs, e.g. "A -> one two three" produces 3 terminal symbols,
+					// assuming one two and three are in the language of the CFG
+					if (terminals.Length >= 3)
+					{
+						//String newTerminal = String.Join(" ", terminals, )
+					}
+				}
+			}
 		}
 
 		private List<String> CloneList(List<String> oldList)
