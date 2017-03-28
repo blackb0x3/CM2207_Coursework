@@ -215,17 +215,58 @@ namespace Solution
 
 		private void ConvertRemainingRules()
 		{
+			Dictionary<String, List<String>> newRules = CreateCopyOfRules (GetAllRules());
+			List<String> newVariables = new List<String> ();
+
+			int newVariableCount = 0;
+
 			foreach (String variable in GetNonTerminalStates())
 			{
 				foreach (String terminal in GetRulesForVariable(variable))
 				{
 					String[] terminals = terminal.Split (" ".ToCharArray());
 
-					// > 3 because whitespaces are used to separate terminal outputs, e.g. "A -> one two three" produces 3 terminal symbols,
+					// >= 3 because whitespaces are used to separate terminal outputs, e.g. "A -> one two three" produces 3 terminal symbols,
 					// assuming one two and three are in the language of the CFG
 					if (terminals.Length >= 3)
 					{
-						//String newTerminal = String.Join(" ", terminals, )
+						String[] terminalsToModify = terminals.Skip (1).Take (terminals.Length - 1).ToArray();
+
+						for (int i = 0; i < terminalsToModify.Length; i += 2)
+						{
+							String newVariable = "V" + newVariableCount;
+							newVariableCount++;
+							String newTerminal = String.Join (" ", new String[] { terminalsToModify [i], terminalsToModify [i + 1] });
+
+							newVariables.Add (newVariable);
+							newRules.Add (newVariable, new List<String> ());
+							newRules[newVariable].Add(newTerminal);
+						}
+
+						this.rules = CreateCopyOfRules(newRules);
+
+						foreach (String newVariable in newVariables)
+						{
+							foreach (String variable2 in GetNonTerminalStates())
+							{
+								foreach (String terminal2 in GetRulesForVariable(variable2))
+								{
+									// If the new resulting terminal pair is contained in any of the original terminal outputs
+									if (newRules[newVariable].ElementAt(0) != terminal2 && terminal2.Contains(newRules[newVariable].ElementAt(0)))
+									{
+										StringBuilder theModifiedTerminal = new StringBuilder (terminal2);
+										int theIndex = terminal2.IndexOf (newRules [newVariable].ElementAt (0));
+										theModifiedTerminal.Remove (theIndex, newRules [newVariable].ElementAt (0).Length);
+										theModifiedTerminal.Insert (theIndex, newVariable);
+
+										newRules [variable2].Remove (terminal2);
+										newRules [variable2].Add (theModifiedTerminal.ToString ());
+									}
+								}
+							}
+						}
+
+						this.rules = CreateCopyOfRules(newRules);
 					}
 				}
 			}
@@ -286,10 +327,10 @@ namespace Solution
 								String[] terminalsInvolved = variableToChange.Split(" ".ToCharArray());
 
 								var perms = new Permutations<String>(terminalsInvolved, GenerateOption.WithoutRepetition);
-								var combs = new Combinations<String> (terminalsInvolved, terminalsInvolved.Length);
+								//var combs = new Combinations<String> (terminalsInvolved, terminalsInvolved.Length);
 								var variations = new Variations<String> (terminalsInvolved, terminalsInvolved.Length);
 
-								var exceptions = perms.Except (variations);
+								//var exceptions = perms.Except (variations);
 
 								foreach (List<String> permutation in perms.Except(variations))
 								{
