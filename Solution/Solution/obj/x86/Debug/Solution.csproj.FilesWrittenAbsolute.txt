@@ -3,3 +3,4 @@
 /home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/bin/Debug/Solution.exe
 /home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/obj/x86/Debug/Solution.exe
 /home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/obj/x86/Debug/Solution.exe.mdb
+/home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/bin/Debug/Combinatorics.dll

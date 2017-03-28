@@ -6,6 +6,9 @@ using System.Text;
 using System.IO;
 using System.Threading;
 
+using Combinatorics;
+using Combinatorics.Collections;
+
 namespace Solution
 {
 	public class CFG
@@ -124,6 +127,7 @@ namespace Solution
 
 			// 1) Add a new start variable.
 			chomskyCFG.AddRule("S0", this.startState);
+			this.AddNonTerminal ("S0");
 			chomskyCFG.startState = "S0";
 
 			// 2) Remove ε rules, i.e. rules of the form "A -> ε".
@@ -141,10 +145,12 @@ namespace Solution
 
 		private void RemoveEmptyStringRules()
 		{
-			bool emptyStringExists = false;
+			bool emptyStringExists;
 
 			do
 			{
+				emptyStringExists = false;
+
 				foreach (String variable in GetNonTerminalStates())
 				{
 					foreach (String terminal in GetRulesForVariable(variable))
@@ -152,22 +158,77 @@ namespace Solution
 						if (terminal == "ε" && variable != GetStartState ())
 						{
 							emptyStringExists = true;
-							this.rules [variable].Remove ("ε");
+							this.rules = ModifyRulesForEmptyString(GetAllRules(), variable, terminal);
+						}
+					}
+				}
+			}
+			while (emptyStringExists == true);
+		}
 
-							foreach (String terminalVariable in GetNonTerminalStates()) // Go back through the variables
+		private Dictionary<String, List<String>> CreateCopyOfRules(Dictionary<String, List<String>> oldRules)
+		{
+			Dictionary<String, List<String>> newRules = new Dictionary<String, List<String>> ();
+
+			foreach (String key in oldRules.Keys)
+			{
+				newRules.Add (key, new List<String> ());
+
+				foreach (String val in oldRules[key])
+				{
+					newRules [key].Add (val);
+				}
+			}
+
+			return newRules;
+		}
+
+		private Dictionary<String, List<String>> ModifyRulesForEmptyString(Dictionary<String, List<String>> oldRules, String theVariableToModify, String theTerminal)
+		{
+			Dictionary<String, List<String>> newRules = CreateCopyOfRules (oldRules);
+			newRules[theVariableToModify].Remove (theTerminal);
+
+			foreach (String terminalVariable in GetNonTerminalStates()) // Go back through the variables
+			{
+				foreach (String variableThatIsTerminal in oldRules[terminalVariable]) // Go back through the rules and their output strings
+				{
+					if (variableThatIsTerminal.Contains (theVariableToModify)) // Find any new occurences of the variable on the right hand side
+					{
+						if (variableThatIsTerminal == theVariableToModify)
+						{
+							newRules[terminalVariable].Add(theTerminal); // Add empty string iff only the current variable is produced
+						}
+
+						else // If other terminals are produced other than the current variable, permutate through them and add them as rules
+						{
+							String variableToChange = variableThatIsTerminal;
+
+							while (variableToChange.IndexOf(theVariableToModify) != -1)
 							{
-								foreach (String variableThatIsTerminal in GetRulesForVariable(terminalVariable)) // Go back through the rules
+								Console.WriteLine (variableToChange.IndexOf(theVariableToModify));
+								variableToChange = variableToChange.Remove(variableToChange.IndexOf(theVariableToModify), 1);
+								String[] terminalsInvolved = variableToChange.Split(" ".ToCharArray());
+
+								var perms = new Permutations<String>(terminalsInvolved, GenerateOption.WithoutRepetition);
+								var combs = new Combinations<String> (terminalsInvolved, terminalsInvolved.Length);
+								var variations = new Variations<String> (terminalsInvolved, terminalsInvolved.Length);
+
+								var exceptions = perms.Except (variations);
+
+								foreach (List<String> permutation in perms.Except(variations))
 								{
-									if (variableThatIsTerminal.Contains (variable)) // Find any new occurences of the variable on the right hand side
+									permutation.RemoveAll (x => x.Equals (""));
+
+									if (!(newRules[terminalVariable].Contains(String.Join("", permutation)) || newRules[terminalVariable].Contains(String.Join(" ", permutation))))
 									{
-										if (variableThatIsTerminal == variable)
+										if (String.Join("", permutation).Length > 1)
 										{
-											this.AddRule (terminalVariable, terminal); // Add empty
+											newRules[terminalVariable].Add(String.Join(" ", permutation));
 										}
 
 										else
 										{
-											//this.AddRule(terminalVariable, variableThatIsTerminal.Except(variable));
+											newRules[terminalVariable].Add(String.Join("", permutation));
 										}
 									}
 								}
@@ -176,7 +237,8 @@ namespace Solution
 					}
 				}
 			}
-			while (emptyStringExists == true);
+
+			return newRules;
 		}
 
 		private void RemoveUnitRules() // i.e. rules of the form A → B, where B is a variable.
