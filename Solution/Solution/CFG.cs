@@ -69,7 +69,15 @@ namespace Solution
 
 		private void AddNonTerminal(String nonTerminal)
 		{
-			this.nonTerminalStates.Add (nonTerminal);
+			if (nonTerminal == "S0")
+			{
+				this.nonTerminalStates.Insert (0, nonTerminal);
+			}
+
+			else
+			{
+				this.nonTerminalStates.Add (nonTerminal);
+			}
 		}
 
 		public List<String> GetRulesForVariable(String variable)
@@ -131,10 +139,10 @@ namespace Solution
 			chomskyCFG.startState = "S0";
 
 			// 2) Remove ε rules, i.e. rules of the form "A -> ε".
-			RemoveEmptyStringRules();
+			chomskyCFG.RemoveEmptyStringRules();
 
 			// 3) Remove unit rules, i.e. rules of the form A → B, where B is a variable.
-
+			chomskyCFG.RemoveUnitRules();
 
 
 			// 4) Convert all remaining rules into the proper form.
@@ -164,6 +172,59 @@ namespace Solution
 				}
 			}
 			while (emptyStringExists == true);
+		}
+
+		private void RemoveUnitRules() // i.e. rules of the form A → B, where B is a variable.
+		{
+			Dictionary<String, List<String>> newRules = CreateCopyOfRules (GetAllRules());
+
+			foreach (String variable in GetNonTerminalStates())
+			{
+				foreach (String terminal in GetRulesForVariable(variable))
+				{
+					if (variable == terminal)
+					{
+						newRules [variable].Remove (terminal);
+					}
+				}
+			}
+
+			this.rules = CreateCopyOfRules(newRules);
+
+			foreach (String variable in GetNonTerminalStates())
+			{
+				foreach (String terminal in GetRulesForVariable(variable))
+				{
+					if (terminal != "ε" && GetNonTerminalStates ().Contains (terminal))
+					{
+						newRules [variable].Remove (terminal);
+						newRules [variable].AddRange (newRules [terminal]);
+					}
+				}
+			}
+
+			this.rules = CreateCopyOfRules(newRules);
+
+			/*foreach (String key in this.rules.Keys)
+			{
+				List<String> currentRules = CloneList(newRules [key]);
+				SortedSet<String> currentRulesAsSet = new SortedSet<String>(currentRules);
+				newRules [key] = CloneList(currentRulesAsSet.ToList ());
+			}
+
+			this.rules = CreateCopyOfRules(newRules);*/
+		}
+
+		private List<String> CloneList(List<String> oldList)
+		{
+			List<String> newList = new List<String> ();
+
+			foreach (String val in oldList)
+			{
+				newList.Add (val);
+			}
+
+			return newList;
 		}
 
 		private Dictionary<String, List<String>> CreateCopyOfRules(Dictionary<String, List<String>> oldRules)
@@ -205,7 +266,6 @@ namespace Solution
 
 							while (variableToChange.IndexOf(theVariableToModify) != -1)
 							{
-								Console.WriteLine (variableToChange.IndexOf(theVariableToModify));
 								variableToChange = variableToChange.Remove(variableToChange.IndexOf(theVariableToModify), 1);
 								String[] terminalsInvolved = variableToChange.Split(" ".ToCharArray());
 
@@ -239,10 +299,6 @@ namespace Solution
 			}
 
 			return newRules;
-		}
-
-		private void RemoveUnitRules() // i.e. rules of the form A → B, where B is a variable.
-		{
 		}
 
 		public override String ToString()
