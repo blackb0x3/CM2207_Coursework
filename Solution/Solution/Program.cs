@@ -12,21 +12,65 @@ namespace Solution
 	{
 		public static void Main (string[] args)
 		{
+			/* Code for testing functionality for task 2
+
+			Console.WriteLine ("Original Form");
 			CFG theCFG = GenerateCFGFromFile (args [0]);
 			Console.WriteLine (theCFG.ToString());
-			Console.WriteLine ();
-			CFG theChomsky = theCFG.ConvertToChomsky ();
-			Console.WriteLine (theChomsky.ToString());
+			Console.WriteLine ("Chomsky Normal Form");
+			theCFG = theCFG.ConvertToChomsky ();
+			Console.WriteLine (theCFG.ToString());
+			
+			*/
 
-			/*String text1 = "helloworld!";
-			String text2 = "world";
+			// Task 3
+			CFG theCFG = GenerateCFGFromFile (args [0]);
+			theCFG = theCFG.ConvertToChomsky ();
 
-			char[] exceptions = text1.Except(text2).ToArray();
+			String theStringToDerive = args [1];
+			List<String> generatedStrings = DeriveTerminal(theStringToDerive, "", new List<String> (), theCFG);
+		}
 
-			foreach (char ex in exceptions)
+		private static List<String> DeriveTerminal(String stringToDerive, String currentString, List<String> previousDerivations, CFG cfg) // Returns the strings generated from the input string
+		{
+			if (previousDerivations.Contains(stringToDerive) && currentString == stringToDerive)
 			{
-				Console.WriteLine (ex);
-			}*/
+				Console.WriteLine ("Derived '{0}'", currentString);
+				return previousDerivations;
+			}
+
+			else if (previousDerivations.Count == 0)
+			{
+				List<String> terminalsProduced = cfg.GetAllRules () [cfg.GetStartState ()];
+
+				foreach (String terminal in terminalsProduced)
+				{
+					previousDerivations.Add (terminal);
+					Console.WriteLine (terminal);
+					return DeriveTerminal (stringToDerive, terminal, previousDerivations, cfg);
+				}
+
+				return previousDerivations;
+			}
+
+			else
+			{
+				foreach (String output in currentString.Split(" ".ToCharArray()))
+				{
+					if (cfg.GetNonTerminalStates().Contains(output))
+					{
+						foreach (String terminal in cfg.GetRulesForVariable(output))
+						{
+							String newString = currentString.Replace (output + " ", terminal + " ");
+							previousDerivations.Add (newString);
+							Console.WriteLine (newString);
+							return DeriveTerminal (stringToDerive, newString, previousDerivations, cfg);
+						}
+					}
+				}
+
+				return previousDerivations;
+			}
 		}
 
 		public static CFG GenerateCFGFromFile(String fileName)

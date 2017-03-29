@@ -6,4 +6,4 @@ S:a B
 A:B
 A:S
 B:b
-B:0xE2
+B:ε

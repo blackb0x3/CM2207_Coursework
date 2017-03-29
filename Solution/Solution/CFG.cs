@@ -6,6 +6,16 @@ using System.Text;
 using System.IO;
 using System.Threading;
 
+/* This package enables me to iterate over the possible permutations over production outputs that generate the empty string
+ * Version: 1.0.3.2
+ * Author/s: Adrian Akison, Eoin Campbell
+ * URL: https://www.nuget.org/packages/Combinatorics
+ * Date Published: 30-08-2012
+ * Date Accessed: 28-03-2017
+ * License: https://github.com/eoincampbell/combinatorics/blob/master/LICENCE
+ * Used in: CFG.ModifyRulesForEmptyString(), Program.Main()
+ * 
+ */
 using Combinatorics;
 using Combinatorics.Collections;
 
@@ -40,7 +50,8 @@ namespace Solution
 				String theVariable = rule.Split (":".ToCharArray())[0];
 				String theTerminal = rule.Split (":".ToCharArray())[1];
 
-				if (UTF8Encoding.Equals (theTerminal, "0xE2") && !GetTerminalStates().Contains(theTerminal)) {
+				if (UTF8Encoding.Equals (theTerminal, "0xE2") && !GetTerminalStates().Contains(theTerminal))
+				{
 					this.AddRule (theVariable, "ε");
 				}
 
@@ -139,14 +150,65 @@ namespace Solution
 
 			// 2) Remove ε rules, i.e. rules of the form "A -> ε".
 			chomskyCFG.RemoveEmptyStringRules();
+			chomskyCFG.RemoveDuplicateRules ();
 
 			// 3) Remove unit rules, i.e. rules of the form A → B, where B is a variable.
 			chomskyCFG.RemoveUnitRules();
+			chomskyCFG.RemoveDuplicateRules ();
 
 			// 4) Convert all remaining rules into the proper form.
 			chomskyCFG.ConvertRemainingRules();
+			chomskyCFG.RemoveDuplicateRules ();
 
 			return chomskyCFG;
+		}
+
+		private void RemoveDuplicateRules()
+		{
+			List<List<String>> trackedTerminals = new List<List<String>>();
+			Dictionary<String, List<String>> newRules = new Dictionary<String, List<String>>();
+
+			foreach (String key in this.rules.Keys)
+			{
+				newRules.Add(key, this.rules[key].Distinct().ToList());
+				trackedTerminals.Add(this.rules[key]);
+			}
+
+			this.rules = CreateCopyOfRules (newRules);
+
+			foreach (String key in this.rules.Keys)
+			{
+				bool variableIsUsed = false;
+
+				foreach (List<String> productions in this.rules.Values)
+				{
+					foreach (String production in productions)
+					{
+						if (production.Contains(key))
+						{
+							variableIsUsed = true;
+							break;
+						}
+					}
+
+					if (variableIsUsed)
+					{
+						break;
+					}
+				}
+
+				if (variableIsUsed || key == GetStartState())
+				{
+					continue;
+				}
+
+				else
+				{
+					newRules.Remove (key);
+				}
+			}
+
+			this.rules = CreateCopyOfRules (newRules);
 		}
 
 		private void RemoveEmptyStringRules()
@@ -216,113 +278,109 @@ namespace Solution
 
 		private void ConvertRemainingRules()
 		{
-			Dictionary<String, List<String>> newRules = CreateCopyOfRules (GetAllRules());
-			List<String> newVariables = new List<String> ();
-			List<String> terminalsAlreadyTracked = new List<String> ();
+			bool thereAreRulesToChange;
+			do {
+				thereAreRulesToChange = false;
+				Dictionary<String, List<String>> newRules = CreateCopyOfRules (GetAllRules ());
+				List<String> newVariables = new List<String> ();
+				List<String> terminalsAlreadyTracked = new List<String> ();
 
-			int newVariableCount = 0;
-			int newTerminalCount = 0;
+				int newVariableCount = 0;
+				int newTerminalCount = 0;
 
-			foreach (String variable in GetNonTerminalStates())
-			{
-				foreach (String terminal in GetRulesForVariable(variable))
-				{
-					String[] terminals = terminal.Split (" ".ToCharArray());
+				foreach (String variable in GetNonTerminalStates()) {
+					foreach (String terminal in GetRulesForVariable(variable)) {
+						String[] terminals = terminal.Split (" ".ToCharArray ());
 
-					// >= 3 because whitespaces are used to separate terminal outputs, e.g. "A -> one two three" produces 3 terminal symbols,
-					// assuming one two and three are in the language of the CFG
-					if (terminals.Length >= 3 && !GetTerminalStates().Any(x => terminals.Contains(x)))
-					{
-						String[] terminalsToModify = terminals.Skip (1).Take (terminals.Length - 1).ToArray();
+						// >= 3 because whitespaces are used to separate terminal outputs, e.g. "A -> one two three" produces 3 terminal symbols,
+						// assuming one two and three are in the language of the CFG
+						if (terminals.Length >= 3 && !GetTerminalStates ().Any (x => terminals.Contains (x))) {
+							thereAreRulesToChange = true;
+							String[] terminalsToModify = terminals.Skip (1).Take (terminals.Length - 1).ToArray ();
 
-						for (int i = 0; i < terminalsToModify.Length; i += 2)
-						{
-							if (!newVariables.Contains("V" + newVariableCount))
-							{
-								String newVariable = "V" + newVariableCount;
-								newVariableCount++;
-								String newTerminal = String.Join (" ", new String[] { terminalsToModify [i], terminalsToModify [i + 1] });
+							for (int i = 0; i < terminalsToModify.Length; i += 2) {
+								if (!newVariables.Contains ("V" + newVariableCount)) {
+									String newVariable = "V" + newVariableCount;
+									newVariableCount++;
+									String newTerminal = String.Join (" ", new String[] { terminalsToModify [i], terminalsToModify [i + 1] });
 
-								newVariables.Add (newVariable);
-								newRules.Add (newVariable, new List<String> ());
-								newRules[newVariable].Add(newTerminal);
-							}
-						}
-
-						this.rules = CreateCopyOfRules(newRules);
-
-						foreach (String newVariable in newVariables)
-						{
-							foreach (String variable2 in GetNonTerminalStates())
-							{
-								foreach (String terminal2 in GetRulesForVariable(variable2))
-								{
-									// If the new resulting terminal pair is contained in any of the original terminal outputs
-									if (newRules[newVariable].ElementAt(0) != terminal2 && terminal2.Contains(newRules[newVariable].ElementAt(0)))
+									newVariables.Add (newVariable);
+									if (!newRules.Keys.Contains(newVariable))
 									{
-										StringBuilder theModifiedTerminal = new StringBuilder (terminal2);
-										int theIndex = terminal2.IndexOf (newRules [newVariable].ElementAt (0));
-										theModifiedTerminal.Remove (theIndex, newRules [newVariable].ElementAt (0).Length);
-										theModifiedTerminal.Insert (theIndex, newVariable);
+										newRules.Add (newVariable, new List<String> ());
+									}
 
-										newRules [variable2].Remove (terminal2);
-										newRules [variable2].Add (theModifiedTerminal.ToString ());
+									newRules [newVariable].Add (newTerminal);
+								}
+							}
+
+							this.rules = CreateCopyOfRules (newRules);
+							thereAreRulesToChange = false;
+
+							foreach (String newVariable in newVariables) {
+								foreach (String variable2 in GetNonTerminalStates()) {
+									foreach (String terminal2 in GetRulesForVariable(variable2)) {
+										// If the new resulting terminal pair is contained in any of the original terminal outputs
+										if (newRules [newVariable].ElementAt (0) != terminal2 && terminal2.Contains (newRules [newVariable].ElementAt (0))) {
+											StringBuilder theModifiedTerminal = new StringBuilder (terminal2);
+											int theIndex = terminal2.IndexOf (newRules [newVariable].ElementAt (0));
+											theModifiedTerminal.Remove (theIndex, newRules [newVariable].ElementAt (0).Length);
+											theModifiedTerminal.Insert (theIndex, newVariable);
+
+											newRules [variable2].Remove (terminal2);
+											newRules [variable2].Add (theModifiedTerminal.ToString ());
+										}
 									}
 								}
 							}
+
+							this.rules = CreateCopyOfRules (newRules);
 						}
 
-						this.rules = CreateCopyOfRules(newRules);
-					}
+						// If there are terminal symbols in the current production's output, create a rule for it and replace it's symbol in all other production rules 
+						if (terminals.Length >= 2 && GetTerminalStates ().Any (x => terminals.Contains (x))) {
+							thereAreRulesToChange = true;
+							List<String> theTerminalsToConvert = terminals.Where (x => GetTerminalStates ().Contains (x)).ToList ();
 
-					// If there are terminal symbols in the current production's output, create a rule for it and replace it's symbol in all other production rules 
-					if (terminals.Length >= 2 && GetTerminalStates().Any(x => terminals.Contains(x)))
-					{
-						List<String> theTerminalsToConvert = terminals.Where (x => GetTerminalStates ().Contains (x)).ToList();
+							foreach (String aTerminal in theTerminalsToConvert) {
+								if (!newVariables.Contains ("U" + newTerminalCount) && !terminalsAlreadyTracked.Contains (aTerminal)) {
+									String theNewVariable = "U" + newTerminalCount;
+									newTerminalCount++;
+									String theNewTerminal = aTerminal;
 
-						foreach (String aTerminal in theTerminalsToConvert)
-						{
-							if (!newVariables.Contains ("U" + newTerminalCount) && !terminalsAlreadyTracked.Contains(aTerminal))
-							{
-								String theNewVariable = "U" + newTerminalCount;
-								newTerminalCount++;
-								String theNewTerminal = aTerminal;
-
-								newVariables.Add (theNewVariable);
-								newRules.Add (theNewVariable, new List<String> ());
-								newRules [theNewVariable].Add (theNewTerminal);
-								terminalsAlreadyTracked.Add (theNewTerminal);
+									newVariables.Add (theNewVariable);
+									newRules.Add (theNewVariable, new List<String> ());
+									newRules [theNewVariable].Add (theNewTerminal);
+									terminalsAlreadyTracked.Add (theNewTerminal);
+								}
 							}
-						}
 
-						this.rules = CreateCopyOfRules(newRules);
+							this.rules = CreateCopyOfRules (newRules);
 
-						foreach (String newVariable in newVariables)
-						{
-							foreach (String variable2 in GetNonTerminalStates())
-							{
-								foreach (String terminal2 in GetRulesForVariable(variable2))
-								{
-									// If the new resulting terminal pair is contained in any of the original terminal outputs
-									if (newRules[newVariable].ElementAt(0) != terminal2 && terminal2.Contains(newRules[newVariable].ElementAt(0)))
-									{
-										StringBuilder theModifiedTerminal = new StringBuilder (terminal2);
-										int theIndex = terminal2.IndexOf (newRules [newVariable].ElementAt (0));
-										theModifiedTerminal.Remove (theIndex, newRules [newVariable].ElementAt (0).Length);
-										theModifiedTerminal.Insert (theIndex, newVariable);
+							foreach (String newVariable in newVariables) {
+								foreach (String variable2 in GetNonTerminalStates()) {
+									foreach (String terminal2 in GetRulesForVariable(variable2)) {
+										// If the new resulting terminal pair is contained in any of the original terminal outputs
+										if (newRules [newVariable].ElementAt (0) != terminal2 && terminal2.Contains (newRules [newVariable].ElementAt (0))) {
+											StringBuilder theModifiedTerminal = new StringBuilder (terminal2);
+											int theIndex = terminal2.IndexOf (newRules [newVariable].ElementAt (0));
+											theModifiedTerminal.Remove (theIndex, newRules [newVariable].ElementAt (0).Length);
+											theModifiedTerminal.Insert (theIndex, newVariable);
 
-										newRules [variable2].Remove (terminal2);
-										newRules [variable2].Add (theModifiedTerminal.ToString ());
+											newRules [variable2].Remove (terminal2);
+											newRules [variable2].Add (theModifiedTerminal.ToString ());
+										}
 									}
 								}
 							}
 						}
 					}
 				}
-			}
+
+			} while (thereAreRulesToChange == true);
 		}
 
-		private List<String> CloneList(List<String> oldList)
+		public List<String> CloneList(List<String> oldList)
 		{
 			List<String> newList = new List<String> ();
 
