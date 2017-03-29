@@ -8,6 +8,8 @@ using System.Threading;
 
 namespace Solution
 {
+	delegate void RecursiveAction();
+
 	class MainClass
 	{
 		public static void Main (string[] args)
@@ -33,6 +35,11 @@ namespace Solution
 
 		private static List<String> DeriveTerminal(String stringToDerive, String currentString, List<String> previousDerivations, CFG cfg) // Returns the strings generated from the input string
 		{
+			RecursiveAction ra = delegate()
+			{
+				previousDerivations.AddRange (DeriveTerminal (stringToDerive, currentString, previousDerivations, cfg));
+			};
+
 			if (previousDerivations.Contains(stringToDerive) && currentString == stringToDerive)
 			{
 				Console.WriteLine ("Derived '{0}'", currentString);
@@ -47,7 +54,9 @@ namespace Solution
 				{
 					previousDerivations.Add (terminal);
 					Console.WriteLine (terminal);
-					return DeriveTerminal (stringToDerive, terminal, previousDerivations, cfg);
+
+					Thread thisThread = new Thread(new ThreadStart(ra), 100);
+					thisThread.Start ();
 				}
 
 				return previousDerivations;
@@ -64,7 +73,9 @@ namespace Solution
 							String newString = currentString.Replace (output + " ", terminal + " ");
 							previousDerivations.Add (newString);
 							Console.WriteLine (newString);
-							return DeriveTerminal (stringToDerive, newString, previousDerivations, cfg);
+
+							Thread thisThread = new Thread(new ThreadStart(ra), 100);
+							thisThread.Start ();
 						}
 					}
 				}
