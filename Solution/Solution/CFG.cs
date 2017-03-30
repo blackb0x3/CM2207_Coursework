@@ -151,16 +151,24 @@ namespace Solution
 			// 2) Remove ε rules, i.e. rules of the form "A -> ε".
 			chomskyCFG.RemoveEmptyStringRules();
 			chomskyCFG.RemoveDuplicateRules ();
+			chomskyCFG.RemoveRedundantVariables ();
 
 			// 3) Remove unit rules, i.e. rules of the form A → B, where B is a variable.
 			chomskyCFG.RemoveUnitRules();
 			chomskyCFG.RemoveDuplicateRules ();
+			chomskyCFG.RemoveRedundantVariables ();
 
 			// 4) Convert all remaining rules into the proper form.
 			chomskyCFG.ConvertRemainingRules();
 			chomskyCFG.RemoveDuplicateRules ();
+			chomskyCFG.RemoveRedundantVariables ();
 
 			return chomskyCFG;
+		}
+
+		private void RemoveRedundantVariables()
+		{
+			this.nonTerminalStates.RemoveAll (x => GetAllRules ().ContainsKey (x) == false);
 		}
 
 		private void RemoveDuplicateRules()
@@ -376,6 +384,8 @@ namespace Solution
 						}
 					}
 				}
+
+				this.nonTerminalStates.AddRange(newVariables);
 
 			} while (thereAreRulesToChange == true);
 		}

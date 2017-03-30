@@ -8,8 +8,6 @@ using System.Threading;
 
 namespace Solution
 {
-	delegate void RecursiveAction();
-
 	class MainClass
 	{
 		public static void Main (string[] args)
@@ -28,60 +26,55 @@ namespace Solution
 			// Task 3
 			CFG theCFG = GenerateCFGFromFile (args [0]);
 			theCFG = theCFG.ConvertToChomsky ();
+			Console.WriteLine (theCFG.ToString());
 
 			String theStringToDerive = args [1];
-			List<String> generatedStrings = DeriveTerminal(theStringToDerive, "", new List<String> (), theCFG);
-		}
+			int derivationLength = theStringToDerive.Split (" ".ToCharArray ()).Length;
+			List<String> generatedStrings = DeriveTerminal(theStringToDerive, derivationLength, theCFG);
 
-		private static List<String> DeriveTerminal(String stringToDerive, String currentString, List<String> previousDerivations, CFG cfg) // Returns the strings generated from the input string
-		{
-			RecursiveAction ra = delegate()
+			if (generatedStrings.Contains(theStringToDerive))
 			{
-				previousDerivations.AddRange (DeriveTerminal (stringToDerive, currentString, previousDerivations, cfg));
-			};
-
-			if (previousDerivations.Contains(stringToDerive) && currentString == stringToDerive)
-			{
-				Console.WriteLine ("Derived '{0}'", currentString);
-				return previousDerivations;
-			}
-
-			else if (previousDerivations.Count == 0)
-			{
-				List<String> terminalsProduced = cfg.GetAllRules () [cfg.GetStartState ()];
-
-				foreach (String terminal in terminalsProduced)
-				{
-					previousDerivations.Add (terminal);
-					Console.WriteLine (terminal);
-
-					Thread thisThread = new Thread(new ThreadStart(ra), 100);
-					thisThread.Start ();
-				}
-
-				return previousDerivations;
+				Console.WriteLine ("Derived '{0}'", theStringToDerive);
 			}
 
 			else
 			{
-				foreach (String output in currentString.Split(" ".ToCharArray()))
-				{
-					if (cfg.GetNonTerminalStates().Contains(output))
-					{
-						foreach (String terminal in cfg.GetRulesForVariable(output))
-						{
-							String newString = currentString.Replace (output + " ", terminal + " ");
-							previousDerivations.Add (newString);
-							Console.WriteLine (newString);
+				Console.WriteLine ("Couldn't derive '{0}'", theStringToDerive);
+			}
+		}
 
-							Thread thisThread = new Thread(new ThreadStart(ra), 100);
-							thisThread.Start ();
+		private static List<String> DeriveTerminal(String stringToDerive, int n, CFG cfg) // Returns the strings generated from the input string
+		{
+			List<String> derivationsList = cfg.GetRulesForVariable (cfg.GetStartState ());
+			List<String> updatedDerivations = new List<String> ();
+			int productionCount = -1;
+
+			do
+			{
+				productionCount++;
+				foreach (String theseDerivations in derivationsList)
+				{
+					StringBuilder newString = new StringBuilder(theseDerivations);
+
+					foreach (String derivation in theseDerivations.Split(" ".ToCharArray()))
+					{
+						if (cfg.GetNonTerminalStates().Contains(derivation))
+						{
+							foreach (String terminal in cfg.GetRulesForVariable (derivation))
+							{
+								newString = newString.Replace(derivation, terminal);
+							}
+
+							updatedDerivations.Add (newString.ToString ());
 						}
 					}
 				}
 
-				return previousDerivations;
+				derivationsList = cfg.CloneList(updatedDerivations);
 			}
+			while (!(derivationsList.Contains(stringToDerive)) && 2 * productionCount - 1 < n);
+
+			return derivationsList;
 		}
 
 		public static CFG GenerateCFGFromFile(String fileName)
@@ -98,6 +91,7 @@ namespace Solution
 			catch (IOException e)
 			{
 				Console.WriteLine (e.Message);
+				Console.ReadLine ();
 				Environment.Exit (-1);
 			}
 
