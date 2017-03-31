@@ -13,15 +13,12 @@ namespace Solution
 		public static void Main (string[] args)
 		{
 			/* Code for testing functionality for task 2
-
 			Console.WriteLine ("Original Form");
 			CFG theCFG = GenerateCFGFromFile (args [0]);
 			Console.WriteLine (theCFG.ToString());
 			Console.WriteLine ("Chomsky Normal Form");
 			theCFG = theCFG.ConvertToChomsky ();
-			Console.WriteLine (theCFG.ToString());
-			
-			*/
+			Console.WriteLine (theCFG.ToString());*/
 
 			// Task 3
 			CFG theCFG = GenerateCFGFromFile (args [0]);
@@ -33,7 +30,12 @@ namespace Solution
 
 			if (generatedStrings.Contains(theStringToDerive))
 			{
-				Console.WriteLine ("Derived '{0}'", theStringToDerive);
+				Console.WriteLine ("Derived '{0}'\n\nGenerated strings:", theStringToDerive);
+
+				foreach (String derivation in generatedStrings)
+				{
+					Console.WriteLine (derivation);
+				}
 			}
 
 			else
