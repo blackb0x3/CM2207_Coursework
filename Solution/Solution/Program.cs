@@ -12,15 +12,33 @@ namespace Solution
 	{
 		public static void Main (string[] args)
 		{
-			/* Code for testing functionality for task 2
+			switch (args.Length)
+			{
+			case 1:
+				TaskTwo (args[0]);
+				break;
+			case 2:
+				TaskThree (args);
+				break;
+			default:
+				Console.WriteLine ("Usage: mono Solution.exe CFG_FILENAME STRING_TO_DERIVE");
+				Console.WriteLine ("Optional Arguments: STRING_TO_DERIVE");
+				break;
+			}
+		}
+
+		private static void TaskTwo(String fileName)
+		{
 			Console.WriteLine ("Original Form");
-			CFG theCFG = GenerateCFGFromFile (args [0]);
+			CFG theCFG = GenerateCFGFromFile (fileName);
 			Console.WriteLine (theCFG.ToString());
 			Console.WriteLine ("Chomsky Normal Form");
 			theCFG = theCFG.ConvertToChomsky ();
-			Console.WriteLine (theCFG.ToString());*/
+			Console.WriteLine (theCFG.ToString());
+		}
 
-			// Task 3
+		private static void TaskThree(String[] args)
+		{
 			CFG theCFG = GenerateCFGFromFile (args [0]);
 			theCFG = theCFG.ConvertToChomsky ();
 
@@ -85,7 +103,7 @@ namespace Solution
 
 			try
 			{
-				// CFG encodings should be located in the Solution/bin/Debug folder, unless the path is specified in the command line
+				// CFG encodings should be located in the Solution/bin/Debug folder
 				lines = File.ReadAllLines (fileName, Encoding.UTF8);
 			}
 
