@@ -2,14 +2,12 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Solution/Program.cs">
     <Files>
-      <File FileName="Solution/Program.cs" Line="34" Column="4" />
-      <File FileName="Solution/CFG.cs" Line="164" Column="43" />
+      <File FileName="Solution/Program.cs" Line="103" Column="56" />
+      <File FileName="Solution/CFG.cs" Line="110" Column="42" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="/home/blackb0x/Documents/GithubRepositories/CM2207_Coursework/Solution/Solution/Program.cs" line="35" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

@@ -26,7 +26,6 @@ namespace Solution
 			// Task 3
 			CFG theCFG = GenerateCFGFromFile (args [0]);
 			theCFG = theCFG.ConvertToChomsky ();
-			Console.WriteLine (theCFG.ToString());
 
 			String theStringToDerive = args [1];
 			int derivationLength = theStringToDerive.Split (" ".ToCharArray ()).Length;
@@ -65,7 +64,7 @@ namespace Solution
 								newString = newString.Replace(derivation, terminal);
 							}
 
-							updatedDerivations.Add (newString.ToString ());
+							updatedDerivations.Insert (0, newString.ToString ());
 						}
 					}
 				}
@@ -79,7 +78,7 @@ namespace Solution
 
 		public static CFG GenerateCFGFromFile(String fileName)
 		{
-			String[] lines = new String[4];
+			String[] lines = new String[4]; // Makes room for a grammar that contains no rules
 			String[] rules;
 
 			try
