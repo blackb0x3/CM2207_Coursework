@@ -103,7 +103,7 @@ namespace Solution
 
 			try
 			{
-				// CFG encodings should be located in the Solution/bin/Debug folder
+				// CFG encodings should be located in the Solution/bin/Debug folder, unless the path is specified otherwise
 				lines = File.ReadAllLines (fileName, Encoding.UTF8);
 			}
 
